@@ -183,6 +183,7 @@ Resources:
   BackendService:
     Type: "AWS::ECS::Service"
     Properties:
+      ServiceName: "backend-service"
       Cluster: !Ref ECSCluster
       DesiredCount: 1
       LaunchType: "FARGATE"
@@ -198,6 +199,7 @@ Resources:
   MySQLService:
     Type: "AWS::ECS::Service"
     Properties:
+      ServiceName: "db-service"
       Cluster: !Ref ECSCluster
       DesiredCount: 1
       LaunchType: "FARGATE"
