@@ -1,0 +1,62 @@
+{
+    "family": "express-app-task",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "express-app-container",
+            "image": "<aws_account_id>.dkr.ecr.<region>.amazonaws.com/<repository_name>:latest",
+            "memory": 512,
+            "cpu": 256,
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "curl -f http://localhost:3000 || exit 1"
+                ],
+                "interval": 30,
+                "timeout": 5,
+                "retries": 3
+            },
+            "portMappings": [
+                {
+                    "containerPort": 3000,
+                    "hostPort": 3000,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "DB_HOST",
+                    "value": "<mysql-task-private-ip>"
+                },
+                {
+                    "name": "DB_USER",
+                    "value": "root"
+                },
+                {
+                    "name": "DB_PASSWORD",
+                    "value": "password123"
+                },
+                {
+                    "name": "DB_NAME",
+                    "value": "ecsdb"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/express-app",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+    "executionRoleArn": "arn:aws:iam::<aws_account_id>:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::<aws_account_id>:role/ecsTaskExecutionRole"
+}
