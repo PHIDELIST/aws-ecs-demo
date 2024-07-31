@@ -153,7 +153,7 @@ Resources:
           Essential: true
           Environment:
             - Name: "DB_HOST"
-              Value: "10.0.2.54"
+              Value: "10.0.2.69"
             - Name: "DB_USER"
               Value: "root"
             - Name: "DB_PASSWORD"
