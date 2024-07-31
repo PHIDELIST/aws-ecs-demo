@@ -24,6 +24,6 @@ jobs:
         with:
           name: ecsdemo-stack
           template: aws/deploy.yaml
-          capabilities: CAPABILITY_IAM
+          capabilities: CAPABILITY_IAM, CAPABILITY_NAMED_IAM
 
 
