@@ -136,6 +136,33 @@ Resources:
         - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
       RoleName: "ecsdemoTaskExecutionRole"
 
+  ServiceConnectNamespace:
+    Type: "AWS::ServiceConnect::Namespace"
+    Properties:
+      Name: "ecsdemo-namespace"
+      Type: "HTTP"
+      VpcId: !Ref VPC
+
+  BackendServiceConnectService:
+    Type: "AWS::ServiceConnect::Service"
+    Properties:
+      Name: "backend-service"
+      NamespaceId: !Ref ServiceConnectNamespace
+      DiscoveryType: "DNS"
+      Tags:
+        - Key: "Name"
+          Value: "backend-service"
+
+  MySQLServiceConnectService:
+    Type: "AWS::ServiceConnect::Service"
+    Properties:
+      Name: "mysql-service"
+      NamespaceId: !Ref ServiceConnectNamespace
+      DiscoveryType: "DNS"
+      Tags:
+        - Key: "Name"
+          Value: "mysql-service"
+
   BackendTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
     Properties:
@@ -153,7 +180,7 @@ Resources:
           Essential: true
           Environment:
             - Name: "DB_HOST"
-              Value: "10.0.2.54"
+              Value: !Sub "mysql-service.${ServiceConnectNamespace}"
             - Name: "DB_USER"
               Value: "root"
             - Name: "DB_PASSWORD"
@@ -221,11 +248,14 @@ Resources:
             - !Ref PublicSubnet
           SecurityGroups:
             - !Ref BackendSecurityGroup
+      ServiceConnect:
+        ServiceConnectServiceName: !Ref BackendServiceConnectService
+
 
   MySQLService:
     Type: "AWS::ECS::Service"
     Properties:
-      ServiceName: "db-service"
+      ServiceName: "mysql-service"
       Cluster: !Ref ECSCluster
       DesiredCount: 1
       LaunchType: "FARGATE"
@@ -237,6 +267,9 @@ Resources:
             - !Ref PrivateSubnet
           SecurityGroups:
             - !Ref MySQLSecurityGroup
+      ServiceConnect:
+        ServiceConnectServiceName: !Ref MySQLServiceConnectService
+
 
   CloudWatchLogGroupBackend:
     Type: "AWS::Logs::LogGroup"
