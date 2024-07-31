@@ -17,7 +17,7 @@ jobs:
         node-version: '20'
 
     - name: Build Docker image
-      run: docker build -t ecsdemo .
+      run: docker build -t ecsdemo ./backend
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
