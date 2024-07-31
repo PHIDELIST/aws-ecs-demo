@@ -11,9 +11,11 @@ const dbConfig = {
   password: process.env.DB_PASSWORD || 'password123',
   database: process.env.DB_NAME || 'ecsdb'
 };
+
 app.get('/', (req, res) => {
   res.send('Hello phidelist!');
 });
+
 app.post('/users', async (req, res) => {
   const { name, age } = req.body;
 
@@ -33,6 +35,20 @@ app.post('/users', async (req, res) => {
     res.status(201).json({ id: result.insertId, name, age });
   } catch (error) {
     console.error('Error inserting user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/users', async (req, res) => {
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+
+    const [rows] = await connection.execute('SELECT * FROM users');
+    await connection.end();
+
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
