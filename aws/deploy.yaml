@@ -143,6 +143,28 @@ Resources:
       Vpc: !Ref VPC
       Description: "Namespace for ECS demo services"
 
+  BackendServiceDiscoveryService:
+    Type: "AWS::ServiceDiscovery::Service"
+    Properties:
+      Name: "backend-service"
+      NamespaceId: !Ref ServiceDiscoveryNamespace
+      Description: "Backend service"
+      DnsConfig:
+        DnsRecords:
+          - Type: "A"
+            TTL: 60
+
+  MySQLServiceDiscoveryService:
+    Type: "AWS::ServiceDiscovery::Service"
+    Properties:
+      Name: "mysql-service"
+      NamespaceId: !Ref ServiceDiscoveryNamespace
+      Description: "MySQL service"
+      DnsConfig:
+        DnsRecords:
+          - Type: "A"
+            TTL: 60
+
   BackendService:
     Type: "AWS::ECS::Service"
     Properties:
@@ -159,7 +181,7 @@ Resources:
           SecurityGroups:
             - !Ref BackendSecurityGroup
       ServiceRegistries:
-        - RegistryArn: !GetAtt ServiceDiscoveryNamespace.Arn
+        - RegistryArn: !GetAtt BackendServiceDiscoveryService.Arn
 
   MySQLService:
     Type: "AWS::ECS::Service"
@@ -177,7 +199,7 @@ Resources:
           SecurityGroups:
             - !Ref MySQLSecurityGroup
       ServiceRegistries:
-        - RegistryArn: !GetAtt ServiceDiscoveryNamespace.Arn
+        - RegistryArn: !GetAtt MySQLServiceDiscoveryService.Arn
 
   BackendTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
