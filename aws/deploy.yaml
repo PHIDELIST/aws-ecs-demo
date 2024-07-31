@@ -101,7 +101,7 @@ Resources:
             Action: "sts:AssumeRole"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-      RoleName: "ecsTaskExecutionRole"
+      RoleName: "ecsdemoTaskExecutionRole"
 
   BackendTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
