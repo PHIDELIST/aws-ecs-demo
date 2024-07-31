@@ -20,8 +20,9 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy CloudFormation Stack
-        uses: aws-actions/aws-cloudformation-action@v1
+        uses: aws-actions/aws-cloudformation-github-deploy@latest
         with:
           name: ecsdemo-stack
           template: aws/deploy.yaml
           capabilities: CAPABILITY_IAM
+
