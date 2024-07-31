@@ -143,7 +143,7 @@ Resources:
       NetworkMode: "awsvpc"
       ContainerDefinitions:
         - Name: "backend-container"
-          Image: "576997243977.dkr.ecr.us-east-1.amazonaws.com/ecsdemo:latest"
+          Image: "<aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/ecsdemo:latest"
           Memory: 512
           Cpu: 256
           PortMappings:
@@ -153,13 +153,13 @@ Resources:
           Essential: true
           Environment:
             - Name: "DB_HOST"
-              Value: "10.0.2.69"
+              Value: "10.0.2.69" #db task ip
             - Name: "DB_USER"
               Value: "root"
             - Name: "DB_PASSWORD"
-              Value: "password123"
+              Value: "password123" # consider using aws secrete manager for this 
             - Name: "DB_NAME"
-              Value: "ecsdb"
+              Value: "ecsdb" # use secrete manager
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
@@ -186,9 +186,9 @@ Resources:
           Essential: true
           Environment:
             - Name: "MYSQL_ROOT_PASSWORD"
-              Value: "password123"
+              Value: "password123" # consider using aws secrete manager for this 
             - Name: "MYSQL_DATABASE"
-              Value: "ecsdb"
+              Value: "ecsdb" # consider using aws secrete manager for this 
           PortMappings:
             - ContainerPort: 3306
               HostPort: 3306
