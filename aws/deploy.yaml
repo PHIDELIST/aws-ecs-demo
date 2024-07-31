@@ -62,6 +62,39 @@ Resources:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref PublicRouteTable
 
+  NATGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      AllocationId: !GetAtt EIPForNAT.AllocationId
+    DependsOn: InternetGateway
+
+  EIPForNAT:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: "vpc"
+
+  PrivateRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: "Name"
+          Value: "ecsdemo-private-rt"
+
+  PrivateRoute:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NATGateway
+
+  PrivateSubnetRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
   BackendSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
@@ -137,7 +170,7 @@ Resources:
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
-              awslogs-group: "/ecs/express-app"
+              awslogs-group: "/ecs/ecsdemo"
               awslogs-region: "us-east-1"
               awslogs-stream-prefix: "ecs"
       RequiresCompatibilities:
@@ -211,3 +244,15 @@ Resources:
             - !Ref PrivateSubnet
           SecurityGroups:
             - !Ref MySQLSecurityGroup
+
+  CloudWatchLogGroupBackend:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: "/ecs/ecsdemo"
+      RetentionInDays: 7
+
+  CloudWatchLogGroupMySQL:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: "/ecs/mysql"
+      RetentionInDays: 7
