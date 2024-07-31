@@ -136,32 +136,48 @@ Resources:
         - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
       RoleName: "ecsdemoTaskExecutionRole"
 
-  ServiceConnectNamespace:
-    Type: "AWS::ServiceConnect::Namespace"
+  ServiceDiscoveryNamespace:
+    Type: "AWS::ServiceDiscovery::PrivateDnsNamespace"
     Properties:
-      Name: "ecsdemo-namespace"
-      Type: "HTTP"
-      VpcId: !Ref VPC
+      Name: "ecsdemo.local"
+      Vpc: !Ref VPC
+      Description: "Namespace for ECS demo services"
 
-  BackendServiceConnectService:
-    Type: "AWS::ServiceConnect::Service"
+  BackendService:
+    Type: "AWS::ECS::Service"
     Properties:
-      Name: "backend-service"
-      NamespaceId: !Ref ServiceConnectNamespace
-      DiscoveryType: "DNS"
-      Tags:
-        - Key: "Name"
-          Value: "backend-service"
+      ServiceName: "backend-service"
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      LaunchType: "FARGATE"
+      TaskDefinition: !Ref BackendTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: "ENABLED"
+          Subnets:
+            - !Ref PublicSubnet
+          SecurityGroups:
+            - !Ref BackendSecurityGroup
+      ServiceRegistries:
+        - RegistryArn: !GetAtt ServiceDiscoveryNamespace.Arn
 
-  MySQLServiceConnectService:
-    Type: "AWS::ServiceConnect::Service"
+  MySQLService:
+    Type: "AWS::ECS::Service"
     Properties:
-      Name: "mysql-service"
-      NamespaceId: !Ref ServiceConnectNamespace
-      DiscoveryType: "DNS"
-      Tags:
-        - Key: "Name"
-          Value: "mysql-service"
+      ServiceName: "mysql-service"
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      LaunchType: "FARGATE"
+      TaskDefinition: !Ref MySQLTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: "DISABLED"
+          Subnets:
+            - !Ref PrivateSubnet
+          SecurityGroups:
+            - !Ref MySQLSecurityGroup
+      ServiceRegistries:
+        - RegistryArn: !GetAtt ServiceDiscoveryNamespace.Arn
 
   BackendTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
@@ -180,7 +196,7 @@ Resources:
           Essential: true
           Environment:
             - Name: "DB_HOST"
-              Value: !Sub "mysql-service.${ServiceConnectNamespace}"
+              Value: !Sub "mysql-service.${ServiceDiscoveryNamespace.Name}"
             - Name: "DB_USER"
               Value: "root"
             - Name: "DB_PASSWORD"
@@ -232,44 +248,6 @@ Resources:
       Memory: "512"
       ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
       TaskRoleArn: !GetAtt ECSTaskExecutionRole.Arn
-
-  BackendService:
-    Type: "AWS::ECS::Service"
-    Properties:
-      ServiceName: "backend-service"
-      Cluster: !Ref ECSCluster
-      DesiredCount: 1
-      LaunchType: "FARGATE"
-      TaskDefinition: !Ref BackendTaskDefinition
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: "ENABLED"
-          Subnets:
-            - !Ref PublicSubnet
-          SecurityGroups:
-            - !Ref BackendSecurityGroup
-      ServiceConnect:
-        ServiceConnectServiceName: !Ref BackendServiceConnectService
-
-
-  MySQLService:
-    Type: "AWS::ECS::Service"
-    Properties:
-      ServiceName: "mysql-service"
-      Cluster: !Ref ECSCluster
-      DesiredCount: 1
-      LaunchType: "FARGATE"
-      TaskDefinition: !Ref MySQLTaskDefinition
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: "DISABLED"
-          Subnets:
-            - !Ref PrivateSubnet
-          SecurityGroups:
-            - !Ref MySQLSecurityGroup
-      ServiceConnect:
-        ServiceConnectServiceName: !Ref MySQLServiceConnectService
-
 
   CloudWatchLogGroupBackend:
     Type: "AWS::Logs::LogGroup"
