@@ -53,6 +53,27 @@ app.get('/users', async (req, res) => {
   }
 });
 
+//this should not be used for production purposes , can only be used durinng testing if your db server is reachable
+app.get('/createtable', async (req, res) => {
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        age INT NOT NULL
+      )
+    `);
+    await connection.end();
+
+    res.status(200).json({ message: 'Table created successfully!' });
+  } catch (error) {
+    console.error('Error creating table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Express app listening at http://localhost:${port}`);
 });
